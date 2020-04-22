@@ -1,5 +1,7 @@
 <?php
 
+$a18n['name'] = 'имя';
+
 //пользователи
 /*
  * v1.2.66 - добавлена
@@ -45,12 +47,13 @@ $a18n['type']	= 'статус';
 $a18n['remember_me']	= 'запомнить меня';
 
 $table = array(
-	'id'		=>	'date:desc last_visit id email',
+	'id'		=>	'id:desc last_visit',
+	'avatar'    => 'img',
 	'email'		=>	'::table_login',
 	'phone'		=>  '::table_login',
 	'type'		=>	$user_types,
 	'last_visit'	=> 'date',
-	'date'		=>	'date',
+	'created_at'	=>	'date',
 );
 
 function table_login($q,$k) {
@@ -96,26 +99,43 @@ function event_delete_users ($q) {
 	mysql_fn('query','DELETE FROM user_socials WHERE user='.$q['id']);
 }
 
-$form[] = array('input td3','email');
-$form[] = array('input td3','phone');
-$form[] = array('input td3','password',array(
+$tabs = array(
+	1=>'Данные',
+	2=>'Статистика',
+	3=>'Структура',
+);
+
+$form[1][] = array('input td3','email');
+$form[1][] = array('input td3','phone');
+$form[1][] = array('input td3','name');
+$form[1][] = array('input td3 datepicker','birthday');
+
+$form[1][] = array('select td3','type',array(
+	'value'=>array(true,$user_types,'')
+));
+//$form[1][] = array('input td2','last_visit');
+$form[1][] = array('input td2','password',array(
 	'value'=>'',
 	'attr'=>'disabled="disabled"'
 ));
-$form[] = array('checkbox td3','change',array(
+
+$form[1][] = array('checkbox td2','change',array(
 	'value'=>'',
 	'name'=>'изменить пароль',
 	'attr'=>'onchange=$(this).closest(\'form\').find(\'input[name=email],input[name=password]\').prop(\'disabled\',!this.checked)'
 ));
-$form[] = array('select td3','type',array(
-	'value'=>array(true,$user_types,'')
+
+//$form[1][] = array('checkbox td3','remember_me');
+
+
+
+
+
+$form[1][] = array('file td6','avatar',array(
+	'sizes'=>array(''=>'resize 1000x1000')
 ));
-$form[] = array('input td3','date',array('name'=>'дата регистрации'));
-$form[] = array('input td3','last_visit');
-$form[] = array('checkbox td3','remember_me');
 
-
-$form[] = 'clear';
+$form[1][] = 'clear';
 if ($get['u']=='form' OR $get['id']>0) {
 	$fields = @$post['fields'] ? (@unserialize($post['fields']) ?: []) : [];
 	if ($parameters = mysql_select("
@@ -124,25 +144,25 @@ if ($get['u']=='form' OR $get['id']>0) {
 		WHERE display = 1
 		ORDER BY rank DESC
 	",'rows')) {
-		$form[] = '<h2>Дополнительные параметры</h2>';
+		$form[1][] = '<h2>Дополнительные параметры</h2>';
 		foreach ($parameters as $q) {
 			$values = $q['values'] ? unserialize($q['values']) : '';
 			if (!isset($fields[$q['id']][0])) $fields[$q['id']][0] = '';
 			switch ($q['type']) {
 				case 1:
-					$form[] = array('input td3', 'fields[' . $q['id'] . '][]', array(
+					$form[1][] = array('input td3', 'fields[' . $q['id'] . '][]', array(
 						'value'=>$fields[$q['id']][0],
 						'name' => $q['name']
 					));
 					break;
 				case 2:
-					$form[] = array('select td3', 'fields[' . $q['id'] . '][]', array(
+					$form[1][] = array('select td3', 'fields[' . $q['id'] . '][]', array(
 						'value'=>array($fields[$q['id']][0], $values,''),
 						'name' => $q['name']
 					));
 					break;
 				case 3:
-					$form[] = array('textarea td12', 'fields[' . $q['id'] . '][]', array(
+					$form[1][] = array('textarea td12', 'fields[' . $q['id'] . '][]', array(
 						'value'=>$fields[$q['id']][0],
 						'name' => $q['name']
 					));
@@ -150,6 +170,12 @@ if ($get['u']=='form' OR $get['id']>0) {
 		}
 	}
 }
+
+$form[2][] = array('statistic','user');
+$form[3][] = 'в разработке';
+
+$content.= '<script src="/admin/templates2/vendors/charts/chartjs/chart.min.js"></script>';
+$content.= '<script src="/admin/templates2/js/chartjs.js?1"></script>';
 
 //v1.4.14 - event_func
 function event_change_users($q) {

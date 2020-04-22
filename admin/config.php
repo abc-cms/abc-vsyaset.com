@@ -149,6 +149,11 @@ $modules_admin = array(
 			//array('module'=>'user_socials',),
 		),
 	),
+	array(
+		'module'=>'statistics',
+		'name'=>'Статистика',
+		'icon'=>'activity', //file
+	),
 /*
 	array(
 		'name'=>'subscribe',

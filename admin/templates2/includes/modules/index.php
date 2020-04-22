@@ -13,16 +13,17 @@ if (!isset($q['years'][$year])) $year = date('Y');
 $where = "created_at>'".$year."-01-01' AND created_at<'".($year+1)."-01-01'";
 
 $q['totals']['users'] = mysql_select("SELECT COUNT(id) FROM users WHERE id>1 AND ".$where,'string');
-$q['totals']['orders'] = mysql_select("SELECT COUNT(id) FROM orders WHERE ".$where,'string');
-$q['totals']['feedback'] = mysql_select("SELECT COUNT(id) FROM feedback WHERE ".$where,'string');
+//$q['totals']['orders'] = mysql_select("SELECT COUNT(id) FROM orders WHERE ".$where,'string');
+//$q['totals']['feedback'] = mysql_select("SELECT COUNT(id) FROM feedback WHERE ".$where,'string');
 
+/*
 $q['orders'] = mysql_select("
 		SELECT *
 		FROM orders
 		ORDER BY created_at DESC
 		LIMIT 5
 	",'rows');
-
+*/
 $q['users'] = mysql_select("
 		SELECT *
 		FROM users
@@ -61,6 +62,7 @@ $q['users'] = mysql_select("
             */?>
 		</div>
 	</div>
+	<?php /*
 	<div class="col-md-4">
 		<div class="card card-body">
 			<h3 class="mb-3">
@@ -77,10 +79,12 @@ $q['users'] = mysql_select("
 			</h4>
 		</div>
 	</div>
+ */?>
 </div>
 
 
 <div class="row" style="margin-right:-30px; margin-left:-30px; ">
+	<?php /*
 	<div class="col-md-6">
 		<div class="card card-body brands">
 			<h6 class="card-title">5 последних заказов</h6>
@@ -98,6 +102,7 @@ $q['users'] = mysql_select("
 			</div>
 		</div>
 	</div>
+ */?>
 
 	<div class="col-md-6">
 		<div class="card card-body">

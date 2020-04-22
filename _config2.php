@@ -1,6 +1,6 @@
 <?php
 
-$config['cms_version'] = '1.4.26';
+$config['cms_version'] = '1.4.27';
 
 $config['multilingual'] = false; //многоязычный сайт вкл/выкл
 $config['multilingual_u0'] = true;//использовать или нет для основного языка в урл u[0]
@@ -51,10 +51,10 @@ $config['_imgs'] = array(
 );
 
 //database - для избегания случайного затирания тестовой базы поля пустые
-$config['mysql_server'] = '';
-$config['mysql_username'] = '';
-$config['mysql_password'] = '';
-$config['mysql_database'] = '';
+$config['mysql_server'] = 'localhost';
+$config['mysql_username'] = 'vsyaset_usr';//'vsyaset.com_usr';
+$config['mysql_password'] = 'gtd6RcxZaQx82ZwD';
+$config['mysql_database'] = 'vsyaset';//'vsyaset.com';
 //исключение для локальной версии
 if ($config['local']) {
 	$config['mysql_server'] = 'localhost';

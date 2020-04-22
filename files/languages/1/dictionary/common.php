@@ -30,6 +30,4 @@ $lang['common'] = array(
 	'pagination_prev'=>'&#171;',
 	'pagination_next'=>'&#187;',
 	'pagination_count_all'=>'все',
-	'letter_top'=>'',
-	'letter_footer'=>'',
 );?>
