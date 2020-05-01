@@ -880,6 +880,7 @@ function nested_sets($m,$id,$selected,$insert,$filter=array()) {
 		if (isset($filter) && is_array($filter)) foreach ($filter as $k => $v) {
 			$where .= " AND `" . $v[0] . "` = " . $selected[$v[0]];
 		}
+		log_add('tree.txt',$where);
 		//принимающий
 		if ($id) {
 			$id = mysql_select("

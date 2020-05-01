@@ -15,7 +15,9 @@ document.addEventListener("DOMContentLoaded", function () {
         warningLight: $('.colors .bg-warning-bright').css('background-color'),
     };
 
+    var js_chart = false;
 	$(document).on('form.open','.form',function(){
+		js_chart = true;
         //alert('2');
 		//
 		//chartjs_user();
@@ -34,11 +36,13 @@ document.addEventListener("DOMContentLoaded", function () {
         if (id=='t2-tab') {
             //$('#t2').show();
             //alert($('#chartjs_user').height());
-            $('.js_chart').each(function () {
-                var id = $(this).attr('id');
-				chartjs_user(id);
-			})
-
+            if (js_chart == true) {
+				$('.js_chart').each(function () {
+					var id = $(this).attr('id');
+					chartjs_user(id);
+				})
+			}
+			js_chart = false;
 		}
 	});
 

@@ -1,6 +1,11 @@
 <?php
 
 $a18n['name'] = 'имя';
+$a18n['parent'] = 'реферер';
+$a18n['structure'] = 'структура';
+$a18n['created_at'] = 'создан';
+
+$delete = array('pages'=>'parent');
 
 //пользователи
 /*
@@ -31,6 +36,27 @@ if ($get['u']=='edit') {
 	else $post['phone'] = trim($post['phone']);
 	//дополнительные параметры
 	$post['fields'] = isset($post['fields']) ? serialize($post['fields']) : '';
+
+	/*
+	if ($post['parent']) {
+		//проверяем существование родителя
+		$parent = 0;
+		if ($get['id']) {
+			$parent = mysql_select("SELECT parent FROM users WHERE id=" . intval($get['id']), 'str');
+		}
+		//если родитель был определен ранее то нельзя перемещать дерево
+		if ($parent==0) {
+			$parent = mysql_select("SELECT id FROM users WHERE id=" . intval($post['parent']), 'str');
+			if ($parent) {
+				//перестраиваем дерево
+				$post['tree'] = $post['parent'];
+			}
+			else {
+				unset($post['parent']);
+			}
+		}
+	}
+	*/
 }
 //исключение для быстрого редактирования
 if ($get['u']=='post') {
@@ -48,12 +74,17 @@ $a18n['remember_me']	= 'запомнить меня';
 
 $table = array(
 	'id'		=>	'id:desc last_visit',
+	'structure'      => '<a href="?m=users&search=tree:{id}"><i data-feather="git-commit"></i></a>
+						<a href="?m=users&search=tree:{parent}"><i data-feather="git-merge"></i></a>
+						<a href="?m=users&search=tree:{tree}"><i data-feather="share-2"></i></a>',
+	'level'     => '{level}',
 	'avatar'    => 'img',
 	'email'		=>	'::table_login',
 	'phone'		=>  '::table_login',
+	'name'		=>  '',
 	'type'		=>	$user_types,
-	'last_visit'	=> 'date',
-	'created_at'	=>	'date',
+	//'last_visit'	=> 'date',
+	'created_at'	=>	'smart',
 );
 
 function table_login($q,$k) {
@@ -69,12 +100,29 @@ function table_login($q,$k) {
 
 
 $where = (isset($get['type']) && $get['type']>0) ? "AND users.type = '".$get['type']."' " : "";
-if (isset($get['search']) && $get['search']!='') $where.= "
-	AND (
-		LOWER(users.email) like '%".mysql_res(mb_strtolower($get['search'],'UTF-8'))."%'
-		OR LOWER(users.fields) like '%".mysql_res(mb_strtolower($get['search'],'UTF-8'))."%'
-	)
-";
+if (isset($get['search']) && $get['search']!='') {
+	$smart = explode(':',$get['search']);
+	if ($smart[0]=='tree') {
+		$tree = mysql_select("SELECT * FROM users WHERE id=".intval($smart[1]),'row');
+		if ($tree) {
+			$where .= "
+				AND tree=" . $tree['tree'] . "
+				AND left_key>=" . $tree['left_key'] . "
+				AND right_key<=" . $tree['right_key'] . "
+			";
+			//ставим сортировку по умолчанию
+			$table['id'] = 'left_key:asc id:desc last_visit';
+		}
+	}
+	else {
+		$where.= "
+			AND (
+				LOWER(users.email) like '%".mysql_res(mb_strtolower($get['search'],'UTF-8'))."%'
+				OR LOWER(users.fields) like '%".mysql_res(mb_strtolower($get['search'],'UTF-8'))."%'
+			)
+		";
+	}
+}
 //v1.2.28 другие пользователи не видят суперадмина
 if ($user['id']!=1) $where.= ' AND users.id!=1';
 
@@ -172,16 +220,78 @@ if ($get['u']=='form' OR $get['id']>0) {
 }
 
 $form[2][] = array('statistic','user');
-$form[3][] = 'в разработке';
+
+if (@$post['parent']==0) {
+	$form[3][] = array('input', 'parent',array(
+		'name'=>'реферер'
+	));
+}
+else {
+	$form[3][] = array('user', 'parent',array(
+		'name'=>'реферер'
+	));
+}
+$form[3][] = array('structure', '');
+
 
 $content.= '<script src="/admin/templates2/vendors/charts/chartjs/chart.min.js"></script>';
 $content.= '<script src="/admin/templates2/js/chartjs.js?1"></script>';
 
 //v1.4.14 - event_func
-function event_change_users($q) {
+function event_change_users($q,$old=false) {
 	global $get,$user,$post;
 	//переавторизация после сохранения своих данных
 	if ($q['id']==$user['id']) {
 		user('re-auth');
+	}
+
+	//если есть старая запись
+	if ($old) {
+		if ($old['parent'] != 0 AND $q['parent'] != $old['parent']) {
+			//возврашаем назад если есть поптыка сменить родителя
+			mysql_fn('update', 'users', array(
+				'id' => $q['id'],
+				'parent' => $old['parent']
+			));
+		}
+	}
+
+	if ($old['parent']==0 AND $q['parent']) {
+		$parent = mysql_select("SELECT * FROM users WHERE id=" . intval($q['parent']), 'row');
+		$tree = mysql_select("SELECT * FROM users WHERE id='" . $parent['tree']."'", 'row');
+		if ($parent AND $tree) {
+			//перестраиваем дерево
+			$q['tree'] = $q['parent'];
+			mysql_fn('update', 'users', array(
+				'id' => $q['id'],
+				'tree' => $parent['tree'],
+				'parent'=>0,
+				'level'=>1,
+				'left_key'=>$tree['right_key']+1,
+				'right_key'=>$tree['right_key']+2,
+			));
+			nested_sets('users',$q['parent'],$q['id'],'parent',array(array('tree')));
+		}
+		else {
+			mysql_fn('update', 'users', array(
+				'id' => $q['id'],
+				'tree' => $q['id'],
+				'parent'=>0,
+				'level'=>1,
+				'left_key'=>1,
+				'right_key'=>2,
+			));
+		}
+	}
+	//добавляем нового без ветки
+	if ($old==false AND $q['parent']==0) {
+		mysql_fn('update', 'users', array(
+			'id' => $q['id'],
+			'tree' => $q['id'],
+			'parent'=>0,
+			'level'=>1,
+			'left_key'=>1,
+			'right_key'=>2,
+		));
 	}
 }

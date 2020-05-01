@@ -111,13 +111,14 @@ if (is_array($form)) {
 //dd($post);
 
 //редактирование текущей записи
+$old = false;
 if ($get['id'] > 0) {
 	$post['id'] = $get['id'];
 	//сравнение изменений
 	$fields = array();
-	$post0 = mysql_select("SELECT * FROM `" . $module['table'] . "` WHERE id=" . intval($get['id']), 'row');
+	$old = mysql_select("SELECT * FROM `" . $module['table'] . "` WHERE id=" . intval($get['id']), 'row');
 	foreach ($post as $k => $v) {
-		if ($v != $post0[$k]) $fields[] = $k;
+		if ($v != $old[$k]) $fields[] = $k;
 	}
 	$fields = implode(',', $fields);
 	mysql_fn('update', $module['table'], $post);
@@ -140,7 +141,7 @@ $error = mysqli_affected_rows($config['mysql_connect']) == 1 ? 0 : mysqli_error(
 //v1.4.14 - event_func
 $event_function = 'event_change_'.$module['table'];
 if ($error==0 AND function_exists($event_function)) {
-	$event_function($post);
+	$event_function($post,$old);
 }
 
 //логирование действия
@@ -227,19 +228,22 @@ $q = mysql_select($query_row,'row');
 $data['table'] = '';
 if (array_key_exists('level',$q) AND array_key_exists('left_key',$q)) {
 	if ($_GET['id']=='new') {
-		$q['level'] = 1;
-		$where = '';
-		//если есть фильтр (например, для языка)
-		if (isset($filter) && is_array($filter)) foreach ($filter as $k=>$v) {
-			$where.= " AND `".$v[0]."` = ".intval($q[$v[0]]);
+		if ($module['table']!='users') {
+			$q['level'] = 1;
+			$where = '';
+			//если есть фильтр (например, для языка)
+			if (isset($filter) && is_array($filter)) foreach ($filter as $k => $v) {
+				$where .= " AND `" . $v[0] . "` = " . intval($q[$v[0]]);
+			}
+			$max = mysql_select("SELECT IFNULL(MAX(right_key),0) FROM " . $module['table'] . " WHERE 1 " . $where, 'string');
+			mysql_fn('update', $module['table'], array('level' => 1, 'left_key' => ($max + 1), 'right_key' => ($max + 2), 'id' => $get['id']));
+			//v1.4.4 нужно для шаблона admin/templates/includes/table/row.php
+			$_GET['id'] = $get['id'];
 		}
-		$max = mysql_select("SELECT IFNULL(MAX(right_key),0) FROM ".$module['table']." WHERE 1 ".$where,'string');
-		mysql_fn('update',$module['table'],array('level'=>1,'left_key'=>($max+1),'right_key'=>($max+2),'id'=>$get['id']));
-		//v1.4.4 нужно для шаблона admin/templates/includes/table/row.php
-		$_GET['id'] = $get['id'];
 	}
 	//перемещение дерева
 	if (isset($_POST['nested_sets']['on']) AND $_POST['nested_sets']['on']==1) {
+		log_add('tree.txt','nested_sets');
 		//вставка типа prev
 		if ($_POST['nested_sets']['previous']) nested_sets($module['table'],$_POST['nested_sets']['previous'],$q['id'],'prev',$filter);
 		//вставка типа parent

@@ -114,8 +114,8 @@ $q['users'] = mysql_select("
 							<?=$v['email']?>
 						</div>
 						<div class="d-flex align-items-center">
-							<div class="m-r-20"><?=@$v['events']?></div>
-							<div style="width: 100px; text-align: right"></div>
+							<div class="m-r-20"><?=@$v['phone']?></div>
+							<div style="width: 100px; text-align: right"><?=@$v['name']?></div>
 						</div>
 					</div>
 				<?php } ?>

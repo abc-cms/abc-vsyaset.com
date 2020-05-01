@@ -5,5 +5,5 @@
 		<a href="#" class="sprite question" title="<?=$q['help']?>"></a>
 		<?php } ?>
 	</label>
-	<div <?=$q['attr']?>>[<?=$q['value']?>]</div>
+	<div <?=$q['attr']?>><?=$q['value']?></div>
 </div>

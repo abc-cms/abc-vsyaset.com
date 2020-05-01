@@ -136,6 +136,9 @@ elseif ($get['type'] == 'id') {
 	//nested sets - пересортировка
 	if (array_key_exists('level', $item) AND array_key_exists('left_key', $item)) {
 		$where = '';
+		if ($module['table']=='users') {
+			$filter = array(array('tree'));
+		}
 		if (isset($filter) && is_array($filter)) foreach ($filter as $k => $v) {
 			$where .= " AND `" . $v[0] . "` = " . intval($item[$v[0]]);
 		}
