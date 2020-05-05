@@ -1,20 +1,56 @@
 'use strict';
 document.addEventListener("DOMContentLoaded", function () {
-    var colors = {
-        primary: $('.colors .bg-primary').css('background-color'),
-        primaryLight: $('.colors .bg-primary-bright').css('background-color'),
-        secondary: $('.colors .bg-secondary').css('background-color'),
-        secondaryLight: $('.colors .bg-secondary-bright').css('background-color'),
-        info: $('.colors .bg-info').css('background-color'),
-        infoLight: $('.colors .bg-info-bright').css('background-color'),
-        success: $('.colors .bg-success').css('background-color'),
-        successLight: $('.colors .bg-success-bright').css('background-color'),
-        danger: $('.colors .bg-danger').css('background-color'),
-        dangerLight: $('.colors .bg-danger-bright').css('background-color'),
-        warning: $('.colors .bg-warning').css('background-color'),
-        warningLight: $('.colors .bg-warning-bright').css('background-color'),
-    };
+	var colors = {
+		primary: $('.colors .bg-primary').css('background-color'),
+		primaryLight: $('.colors .bg-primary-bright').css('background-color'),
+		secondary: $('.colors .bg-secondary').css('background-color'),
+		secondaryLight: $('.colors .bg-secondary-bright').css('background-color'),
+		info: $('.colors .bg-info').css('background-color'),
+		infoLight: $('.colors .bg-info-bright').css('background-color'),
+		success: $('.colors .bg-success').css('background-color'),
+		successLight: $('.colors .bg-success-bright').css('background-color'),
+		danger: $('.colors .bg-danger').css('background-color'),
+		dangerLight: $('.colors .bg-danger-bright').css('background-color'),
+		warning: $('.colors .bg-warning').css('background-color'),
+		warningLight: $('.colors .bg-warning-bright').css('background-color'),
+	};
 
+	$(document).on('click','.js-statistics',function(){
+	    var box = $('.statistics'),
+            from = $('input[name*=from]',box).val(),
+			to = $('input[name*=to]',box).val(),
+			type = $('select[name*=type]',box).val(),
+			user = $('input[name*=user]',box).val();
+	    console.log(from);
+		$.ajax({
+			url: '/api/statistics/',
+			type: 'POST',
+			dataType: 'json',
+			//contentType: false,
+			//processData: false,
+			data: {'from':from,'to':to,'user':user,'type':type},
+			cache: false,
+			beforeSend: function(){
+
+			},
+			success: function(json, textStatus){
+			    if (json.html) {
+			        $('.statistics_result').html(json.html);
+					chartjs_user('chartjs');
+				}
+			},
+			error: function(XMLHttpRequest, textStatus, errorThrown){
+				alert(errorThrown);
+			},
+			complete: function(XMLHttpRequest, textStatus){
+
+			}
+		});
+		return false;
+	});
+
+
+    /*
     var js_chart = false;
 	$(document).on('form.open','.form',function(){
 		js_chart = true;
@@ -22,6 +58,8 @@ document.addEventListener("DOMContentLoaded", function () {
 		//
 		//chartjs_user();
 	});
+
+	/*
 	$(document).on('show.bs.tab','.form a[data-toggle="tab"]', function (e) {
 		//alert('show');
 		var id = $(this).prop('id');
@@ -45,6 +83,7 @@ document.addEventListener("DOMContentLoaded", function () {
 			js_chart = false;
 		}
 	});
+	*/
 
 
     function chartjs_user(id) {
@@ -73,12 +112,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 ]
             },
 			options: {
-			legend: { display: false },
-			title: {
-				display: false,
-					text: 'Predicted world population (millions) in 2050'
-			}
-		}
+                legend: { display: false },
+                title: {
+                    display: false
+                    //text: 'Predicted world population (millions) in 2050'
+                }
+            }
         });
     }
 

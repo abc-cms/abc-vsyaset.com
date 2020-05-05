@@ -27,7 +27,7 @@ if ($get['u']=='edit') {
 		$post['password'] = trim($post['password']);
 		$post['hash'] = user_hash_db($post['salt'],$post['password']);
 	}
-	unset($post['password'],$post['change']);
+	unset($post['password'],$post['change'],$post['statistics']);
 	//изменения логина - если пустые то null, если нет то обрезаем пробелы
 	$config['mysql_null'] = true; //v1.2.89
 	if ($post['email']=='') $post['email'] = null;
@@ -36,7 +36,7 @@ if ($get['u']=='edit') {
 	else $post['phone'] = trim($post['phone']);
 	//дополнительные параметры
 	$post['fields'] = isset($post['fields']) ? serialize($post['fields']) : '';
-
+	$post['parameters'] = isset($post['parameters']) ? serialize($post['parameters']) : '';
 	/*
 	if ($post['parent']) {
 		//проверяем существование родителя
@@ -219,7 +219,7 @@ if ($get['u']=='form' OR $get['id']>0) {
 	}
 }
 
-$form[2][] = array('statistic','user');
+$form[2][] = array('statistics','user');
 
 if (@$post['parent']==0) {
 	$form[3][] = array('input', 'parent',array(
@@ -232,10 +232,11 @@ else {
 	));
 }
 $form[3][] = array('structure', '');
+$form[3][] = array('statistics_parameters', 'parameters');
 
 
 $content.= '<script src="/admin/templates2/vendors/charts/chartjs/chart.min.js"></script>';
-$content.= '<script src="/admin/templates2/js/chartjs.js?1"></script>';
+$content.= '<script src="/admin/templates2/js/chartjs.js?'.time().'"></script>';
 
 //v1.4.14 - event_func
 function event_change_users($q,$old=false) {

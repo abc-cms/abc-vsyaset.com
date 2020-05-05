@@ -1,6 +1,6 @@
 <?php
 
-$config['cms_version'] = '1.4.27';
+$config['cms_version'] = '1.4.28';
 
 $config['multilingual'] = false; //многоязычный сайт вкл/выкл
 $config['multilingual_u0'] = true;//использовать или нет для основного языка в урл u[0]
